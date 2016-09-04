@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<!-- To run the current sample code in your own environment, copy this to an html page. -->
+
+<html>
+<head>
+  <script src="//code.jquery.com/jquery-1.12.3.min.js"></script>
+  <base href="//www.jsviews.com/samples/"/>
+  <link href="samples.css" rel="stylesheet"/>
+  <script src="../download/jsviews.js"></script>
+</head>
+<body>
+
+<style>table {margin-bottom: 9px;}</style>
+
+<button id="update">Update</button>
+<button id="revert">Revert</button>
+<button id="getData">Get Data</button><br/>
+<button id="changeName">Change name</button>
+<button id="addPhone">Add Phone</button>
+
+<div id="result"></div>
+
+<script id="personTmpl" type="text/x-jsrender">
+  <table class="nowidth"><tbody>
+    <tr><td>Comment:</td><td><input data-link="comment()"/></td></tr>
+    <tr><td>Name:</td><td><input data-link="name()"/></td></tr>
+    <tr><td>Street:</td><td><input data-link="address()^street()"/></td></tr>
+    <tr><td>Phones:</td><td>
+      <table class="nowidth"><tbody>
+        {^{for phones() ~personIndex=#index}}
+          <tr><td>
+            <input class="floatleft" data-link="number()" />
+            <span class="remove" data-link="{on remove #index ~personIndex}"></span>
+          </td></tr>
+        {{/for}}
+      </tbody></table>
+    </td></tr>
+  </tbody></table></script>
+
+<script>
+var tmpl = $.templates("#personTmpl");
+
+var myVmCollection = {};
+
+// Compile View Models
+$.views.viewModels({
+  Person: {
+    getters: [
+      {getter: "name", defaultVal: "No name"}, // Compiled name() get/set
+      {getter: "address", type: "Address", defaultVal: defaultAddress},
+      {getter: "phones", type: "Phone", defaultVal: []}
+    ],
+    extend: {
+      name: myNameGetSet,                      // Override name() get/set
+      addPhone: addPhone,
+      comment: comment                         // Additional get/set property, not initialized by data)
+    },
+    id: function(vm, plain) {                  // Callback function to determine 'identity'
+      return vm.personId === plain.personId;
+    }
+  },
+  Address: {
+    getters: ["street"]
+  },
+  Phone: {
+    getters: ["number"],
+    extend: {
+      remove: remove,
+    },
+    id: "phoneId"                              // Treat phoneId as 'primary key', for identity
+  }
+}, myVmCollection);                            // Store View Models (typed hierarchy) on myVmCollection
+
+// Override generated name() get/set
+function myNameGetSet(val) {
+  if (!arguments.length) {
+    return this._name; // If there is no argument, use as a getter
+  }
+  $.observable(this).setProperty("name", val);
+};
+
+myNameGetSet.set = function(val) {
+  this._name = val; // Setter called by observable property change
+  console.log("name set to " + val);           // This is an additional line of code, for logging
+};
+
+// Method for Person class
+function addPhone(phoneNo) {                   // Uses myVmCollection.Phone() to construct new instance
+  $.observable(this.phones()).insert(myVmCollection.Phone(phoneNo));
+}
+
+// Method for Phone class
+function remove(index, personIndex) {
+  $.observable(people[personIndex].phones()).remove(index);
+};
+
+// get/set for comment (state on View Model instance, not initialized from data)
+function comment(val) {
+  if (!arguments.length) {
+    return this._comment; // If there is no argument, use as a getter
+  }
+  $.observable(this).setProperty("comment", val);
+}
+
+comment.set = function(val) {
+  this._comment = val; // Setter called by observable property change
+};
+
+function defaultAddress() {                    // Function providing default address if undefined in data
+  return {street: 'No street for "' + this.name + '"'};
+}
+
+// First version of data - array of objects (e.g. from JSON request):
+var peopleData = [
+  {
+    personId: "1",
+    address: {
+      street: "2nd Ave"
+    }
+  },
+  {
+    personId: "2",
+    name: "Pete",
+    phones: [
+      {number: "333 333 3333", phoneId: "2a"}
+    ]
+  }
+];
+
+// Second version of data - JSON string (e.g. new JSON request):
+var peopleData2 = '[{"personId":"2","name":"Peter","address":{"street":"11 1st Ave"},'
++ '"phones":[{"number":"111 111 9999","phoneId":"1a"},{"number":"333 333 9999","phoneId":"2a"}]}]';
+
+// Instantiate View Model hierarchy using map()
+var people = myVmCollection.Person.map(peopleData);
+
+// Render and link the template against people (array of Person instances)
+tmpl.link("#result", people);
+
+// Button handlers
+$("#update").on("click", function() {
+  people.merge(peopleData2);
+});
+
+$("#revert").on("click", function() {
+  people.merge(peopleData);
+});
+
+$("#changeName").on("click", function() {
+  people[0].name("newName");
+});
+
+$("#addPhone").on("click", function() {
+  people[0].addPhone("xxx xxx xxxx");
+});
+
+$("#getData").on("click", function() {
+  var updatedPeopleData = people.unmap(people);
+  window.alert(JSON.stringify(updatedPeopleData));
+});
+</script>
+
+</body>
+</html>

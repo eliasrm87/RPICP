@@ -1,0 +1,27 @@
+<div class="row">
+    <h1 class="page-header">Resources</h1>
+    <div class="col-sm-12 col-md-12">
+        <h2 class="sub-header">Disk:</h2>
+        {^{for diskUsage}}
+            <b>{^{:mount}}</b>
+            <div class="progress">
+                <div class="progress-bar progress-bar-danger" role="progressbar"
+                data-link="style{: 'width: ' + (used/size * 100) + '%;'} text{: used + ' Kb'}"></div>
+                <div class="progress-bar progress-bar-success" role="progressbar"
+                data-link="style{: 'width: ' + (100 - used/size * 100) + '%;'} text{: avail + ' Kb'}"></div>
+            </div>
+        {{/for}}
+    </div>
+    <div class="col-sm-12 col-md-12">
+        <h2 class="sub-header">CPU:</h2>
+        <div id="cpuChart" style="height: 250px;"></div>
+    </div>
+    <div class="col-sm-6 col-md-6">
+        <h2 class="sub-header">RAM:</h2>
+        <div id="memChart" style="height: 250px;"></div>
+    </div>
+    <div class="col-sm-6 col-md-6">
+        <h2 class="sub-header">Swap:</h2>
+        <div id="swapChart" style="height: 250px;"></div>
+    </div>
+</div>

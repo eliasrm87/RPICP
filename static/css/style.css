@@ -1,0 +1,25 @@
+body, .sidebar {
+  padding-top: 50px;
+}
+
+#poweroff {
+    color: #d41c3b;
+    text-align: center;
+    font-size: 25px;
+}
+
+#poweroff i {
+    font-size: 50px;
+    cursor: pointer;
+}
+
+#reboot {
+    color: #009f3c;
+    text-align: center;
+    font-size: 25px;
+}
+
+#reboot i {
+    font-size: 50px;
+    cursor: pointer;
+}
